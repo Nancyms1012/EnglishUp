@@ -1,7 +1,10 @@
 import { useState, useMemo } from 'react'
 import { vocabulary, dailyPhrases } from '../data/vocabulary'
 import { CATEGORIES } from '../lib/constants'
+import { useProgress } from '../context/ProgressContext'
 import { ArrowLeft, Check, X, RotateCcw, Trophy, Volume2 } from 'lucide-react'
+import XPNotification from '../components/XPNotification'
+import LevelUpModal from '../components/LevelUpModal'
 
 function shuffleArray(array) {
   const shuffled = [...array]
@@ -44,6 +47,9 @@ export default function Quiz() {
   const [showResult, setShowResult] = useState(false)
   const [quizComplete, setQuizComplete] = useState(false)
   const [answers, setAnswers] = useState([])
+  const [xpNotification, setXpNotification] = useState({ show: false, amount: 0 })
+  const [levelUp, setLevelUp] = useState(null)
+  const { addXP, saveQuizResult, XP_REWARDS } = useProgress()
 
   const startQuiz = (category) => {
     const vocabList = category === 'all' 
@@ -61,13 +67,21 @@ export default function Quiz() {
     setAnswers([])
   }
 
-  const handleAnswer = (index) => {
+  const handleAnswer = async (index) => {
     if (showResult) return
     setSelectedAnswer(index)
     setShowResult(true)
 
     const isCorrect = index === questions[currentQuestion].correctIndex
-    if (isCorrect) setScore(score + 1)
+    if (isCorrect) {
+      setScore(score + 1)
+      // Award XP
+      const result = await addXP(XP_REWARDS.quiz_correct, 'quiz')
+      setXpNotification({ show: true, amount: XP_REWARDS.quiz_correct })
+      if (result?.leveledUp) {
+        setLevelUp({ level: result.newLevel.level, name: result.newLevel.name })
+      }
+    }
 
     setAnswers([...answers, { 
       question: questions[currentQuestion].question,
@@ -80,6 +94,8 @@ export default function Quiz() {
   const handleNext = () => {
     if (currentQuestion + 1 >= questions.length) {
       setQuizComplete(true)
+      // Save quiz result
+      saveQuizResult(selectedCategory, score, questions.length)
     } else {
       setCurrentQuestion(currentQuestion + 1)
       setSelectedAnswer(null)
@@ -98,6 +114,8 @@ export default function Quiz() {
   if (selectedCategory === null) {
     return (
       <div className="max-w-4xl mx-auto">
+        <XPNotification amount={xpNotification.amount} show={xpNotification.show} onHide={() => setXpNotification({ show: false, amount: 0 })} />
+        {levelUp && <LevelUpModal level={levelUp.level} levelName={levelUp.name} onClose={() => setLevelUp(null)} />}
         <h1 className="text-3xl font-bold text-gray-800 mb-2">🧠 Quiz</h1>
         <p className="text-gray-500 mb-6">Pon a prueba tu vocabulario con 10 preguntas</p>
 
@@ -197,6 +215,8 @@ export default function Quiz() {
 
   return (
     <div className="max-w-2xl mx-auto">
+      <XPNotification amount={xpNotification.amount} show={xpNotification.show} onHide={() => setXpNotification({ show: false, amount: 0 })} />
+      {levelUp && <LevelUpModal level={levelUp.level} levelName={levelUp.name} onClose={() => setLevelUp(null)} />}
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <button

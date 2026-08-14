@@ -1,6 +1,9 @@
 import { useState, useRef } from 'react'
 import { vocabulary } from '../data/vocabulary'
+import { useProgress } from '../context/ProgressContext'
 import { ArrowLeft, Mic, MicOff, Volume2, Play, RotateCcw, Check, X, HelpCircle } from 'lucide-react'
+import XPNotification from '../components/XPNotification'
+import LevelUpModal from '../components/LevelUpModal'
 
 function shuffleArray(array) {
   const shuffled = [...array]
@@ -80,7 +83,10 @@ export default function Pronunciation() {
   const [complete, setComplete] = useState(false)
   const [error, setError] = useState('')
   const [attempts, setAttempts] = useState(0)
+  const [xpNotification, setXpNotification] = useState({ show: false, amount: 0 })
+  const [levelUp, setLevelUp] = useState(null)
   const recognitionRef = useRef(null)
+  const { addXP, XP_REWARDS } = useProgress()
 
   const isSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window
 
@@ -127,7 +133,7 @@ export default function Pronunciation() {
       setIsListening(true)
     }
 
-    recognition.onresult = (event) => {
+    recognition.onresult = async (event) => {
       // Get the best match from alternatives
       let bestMatch = ''
       let bestSimilarity = 0
@@ -149,6 +155,12 @@ export default function Pronunciation() {
       
       if (bestSimilarity >= 70) {
         setScore(score + 1)
+        // Award XP
+        const result = await addXP(XP_REWARDS.pronunciation_good, 'pronunciation')
+        setXpNotification({ show: true, amount: XP_REWARDS.pronunciation_good })
+        if (result?.leveledUp) {
+          setLevelUp({ level: result.newLevel.level, name: result.newLevel.name })
+        }
       }
     }
 
@@ -298,6 +310,8 @@ export default function Pronunciation() {
 
   return (
     <div className="max-w-2xl mx-auto">
+      <XPNotification amount={xpNotification.amount} show={xpNotification.show} onHide={() => setXpNotification({ show: false, amount: 0 })} />
+      {levelUp && <LevelUpModal level={levelUp.level} levelName={levelUp.name} onClose={() => setLevelUp(null)} />}
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <button onClick={() => setStarted(false)} className="text-indigo-600 hover:underline flex items-center gap-1">

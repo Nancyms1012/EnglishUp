@@ -1,7 +1,10 @@
 import { useState, useMemo } from 'react'
 import { vocabulary } from '../data/vocabulary'
 import { CATEGORIES } from '../lib/constants'
+import { useProgress } from '../context/ProgressContext'
 import { ArrowLeft, Volume2, Check, X, RotateCcw, Play } from 'lucide-react'
+import XPNotification from '../components/XPNotification'
+import LevelUpModal from '../components/LevelUpModal'
 
 function shuffleArray(array) {
   const shuffled = [...array]
@@ -20,7 +23,9 @@ export default function Listening() {
   const [showResult, setShowResult] = useState(false)
   const [score, setScore] = useState(0)
   const [complete, setComplete] = useState(false)
-
+  const [xpNotification, setXpNotification] = useState({ show: false, amount: 0 })
+  const [levelUp, setLevelUp] = useState(null)
+  const { addXP, XP_REWARDS } = useProgress()
   const startExercise = () => {
     const shuffled = shuffleArray(vocabulary)
     const selected = shuffled.slice(0, 10)
@@ -56,12 +61,17 @@ export default function Listening() {
     speechSynthesis.speak(utterance)
   }
 
-  const handleAnswer = (index) => {
+  const handleAnswer = async (index) => {
     if (showResult) return
     setSelectedAnswer(index)
     setShowResult(true)
     if (index === exercises[currentIndex].correctIndex) {
       setScore(score + 1)
+      const result = await addXP(XP_REWARDS.listening_correct, 'listening')
+      setXpNotification({ show: true, amount: XP_REWARDS.listening_correct })
+      if (result?.leveledUp) {
+        setLevelUp({ level: result.newLevel.level, name: result.newLevel.name })
+      }
     }
   }
 
@@ -134,6 +144,8 @@ export default function Listening() {
 
   return (
     <div className="max-w-2xl mx-auto">
+      <XPNotification amount={xpNotification.amount} show={xpNotification.show} onHide={() => setXpNotification({ show: false, amount: 0 })} />
+      {levelUp && <LevelUpModal level={levelUp.level} levelName={levelUp.name} onClose={() => setLevelUp(null)} />}
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <button onClick={() => setStarted(false)} className="text-indigo-600 hover:underline flex items-center gap-1">

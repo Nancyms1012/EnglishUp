@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { vocabulary } from '../data/vocabulary'
+import { useProgress } from '../context/ProgressContext'
 import { ArrowLeft, Check, X, RotateCcw, Play, Volume2, HelpCircle } from 'lucide-react'
+import XPNotification from '../components/XPNotification'
+import LevelUpModal from '../components/LevelUpModal'
 
 function shuffleArray(array) {
   const shuffled = [...array]
@@ -21,7 +24,9 @@ export default function Writing() {
   const [score, setScore] = useState(0)
   const [complete, setComplete] = useState(false)
   const [showHint, setShowHint] = useState(false)
-
+  const [xpNotification, setXpNotification] = useState({ show: false, amount: 0 })
+  const [levelUp, setLevelUp] = useState(null)
+  const { addXP, XP_REWARDS } = useProgress()
   const startExercise = () => {
     const shuffled = shuffleArray(vocabulary)
     setExercises(shuffled.slice(0, 10))
@@ -34,7 +39,7 @@ export default function Writing() {
     setShowHint(false)
   }
 
-  const checkAnswer = (e) => {
+  const checkAnswer = async (e) => {
     e.preventDefault()
     const correct = exercises[currentIndex].translations.en.toLowerCase().trim()
     const answer = userInput.toLowerCase().trim()
@@ -45,7 +50,14 @@ export default function Writing() {
     const isMatch = normalize(answer) === normalize(correct)
     setIsCorrect(isMatch)
     setShowResult(true)
-    if (isMatch) setScore(score + 1)
+    if (isMatch) {
+      setScore(score + 1)
+      const result = await addXP(XP_REWARDS.writing_correct, 'writing')
+      setXpNotification({ show: true, amount: XP_REWARDS.writing_correct })
+      if (result?.leveledUp) {
+        setLevelUp({ level: result.newLevel.level, name: result.newLevel.name })
+      }
+    }
   }
 
   const handleNext = () => {
@@ -130,6 +142,8 @@ export default function Writing() {
 
   return (
     <div className="max-w-2xl mx-auto">
+      <XPNotification amount={xpNotification.amount} show={xpNotification.show} onHide={() => setXpNotification({ show: false, amount: 0 })} />
+      {levelUp && <LevelUpModal level={levelUp.level} levelName={levelUp.name} onClose={() => setLevelUp(null)} />}
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <button onClick={() => setStarted(false)} className="text-indigo-600 hover:underline flex items-center gap-1">

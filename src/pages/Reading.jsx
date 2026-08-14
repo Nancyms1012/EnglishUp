@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { readingTexts } from '../data/vocabulary'
+import { useProgress } from '../context/ProgressContext'
 import { ArrowLeft, BookOpen, Check, X, RotateCcw, Volume2 } from 'lucide-react'
+import XPNotification from '../components/XPNotification'
+import LevelUpModal from '../components/LevelUpModal'
 
 export default function Reading() {
   const [selectedText, setSelectedText] = useState(null)
@@ -10,7 +13,9 @@ export default function Reading() {
   const [score, setScore] = useState(0)
   const [complete, setComplete] = useState(false)
   const [showQuestions, setShowQuestions] = useState(false)
-
+  const [xpNotification, setXpNotification] = useState({ show: false, amount: 0 })
+  const [levelUp, setLevelUp] = useState(null)
+  const { addXP, XP_REWARDS } = useProgress()
   const startReading = (text) => {
     setSelectedText(text)
     setCurrentQuestion(0)
@@ -21,12 +26,17 @@ export default function Reading() {
     setShowQuestions(false)
   }
 
-  const handleAnswer = (index) => {
+  const handleAnswer = async (index) => {
     if (showResult) return
     setSelectedAnswer(index)
     setShowResult(true)
     if (index === selectedText.questions[currentQuestion].correct) {
       setScore(score + 1)
+      const result = await addXP(XP_REWARDS.reading_correct, 'reading')
+      setXpNotification({ show: true, amount: XP_REWARDS.reading_correct })
+      if (result?.leveledUp) {
+        setLevelUp({ level: result.newLevel.level, name: result.newLevel.name })
+      }
     }
   }
 
@@ -114,6 +124,8 @@ export default function Reading() {
   // Reading + Questions
   return (
     <div className="max-w-2xl mx-auto">
+      <XPNotification amount={xpNotification.amount} show={xpNotification.show} onHide={() => setXpNotification({ show: false, amount: 0 })} />
+      {levelUp && <LevelUpModal level={levelUp.level} levelName={levelUp.name} onClose={() => setLevelUp(null)} />}
       <button onClick={() => setSelectedText(null)} className="text-indigo-600 hover:underline flex items-center gap-1 mb-6">
         <ArrowLeft size={16} /> Volver a textos
       </button>
