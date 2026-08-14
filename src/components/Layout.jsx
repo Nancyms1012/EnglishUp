@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { 
   Home, BookOpen, Brain, Headphones, PenTool, BookMarked, 
-  BarChart3, LogOut, Menu, X, GraduationCap 
+  Mic, BarChart3, LogOut, Menu, X, GraduationCap 
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -13,6 +13,7 @@ const navItems = [
   { path: '/listening', label: 'Escucha', icon: Headphones },
   { path: '/writing', label: 'Escritura', icon: PenTool },
   { path: '/reading', label: 'Lectura', icon: BookMarked },
+  { path: '/pronunciation', label: 'Pronunciación', icon: Mic },
   { path: '/progress', label: 'Progreso', icon: BarChart3 },
 ]
 

@@ -12,6 +12,7 @@ import Quiz from './pages/Quiz'
 import Listening from './pages/Listening'
 import Writing from './pages/Writing'
 import Reading from './pages/Reading'
+import Pronunciation from './pages/Pronunciation'
 import Progress from './pages/Progress'
 
 function App() {
@@ -54,6 +55,11 @@ function App() {
           <Route path="/reading" element={
             <ProtectedRoute>
               <Layout><Reading /></Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/pronunciation" element={
+            <ProtectedRoute>
+              <Layout><Pronunciation /></Layout>
             </ProtectedRoute>
           } />
           <Route path="/progress" element={

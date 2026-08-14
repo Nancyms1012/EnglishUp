@@ -1,7 +1,7 @@
 import { useAuth } from '../context/AuthContext'
 import { Link } from 'react-router-dom'
 import { 
-  BookOpen, Brain, Headphones, PenTool, BookMarked, 
+  BookOpen, Brain, Headphones, PenTool, BookMarked, Mic,
   Flame, Trophy, Target, Sparkles 
 } from 'lucide-react'
 import { dailyPhrases } from '../data/vocabulary'
@@ -46,6 +46,14 @@ const modules = [
     icon: BookMarked, 
     color: 'bg-pink-500',
     bgLight: 'bg-pink-50',
+  },
+  { 
+    path: '/pronunciation', 
+    label: 'Pronunciación', 
+    description: 'Evalúa y mejora tu pronunciación',
+    icon: Mic, 
+    color: 'bg-red-500',
+    bgLight: 'bg-red-50',
   },
 ]
 
