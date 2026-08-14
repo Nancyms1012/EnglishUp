@@ -28,11 +28,11 @@ Esta guía te lleva paso a paso por la configuración completa del proyecto, des
 ### Clonar y subir el proyecto
 
 ```bash
-git clone https://github.com/TU_USUARIO/EnglishUp.git
+git clone https://github.com/Nancyms1012/EnglishUp.git
 cd EnglishUp
 npm install
-npm run dev    # Para desarrollo local
-npm run build  # Para producción
+npm run dev    # Para desarrollo local (http://localhost:5173)
+npm run build  # Para producción (genera carpeta dist/)
 ```
 
 ---
@@ -64,7 +64,7 @@ npm run build  # Para producción
 
 1. Ve a **SQL Editor** (barra lateral)
 2. Clic en **"New query"**
-3. Copia y pega todo el contenido de `supabase/schema.sql`
+3. Copia y pega todo el contenido del archivo `supabase/schema.sql` del repositorio
 4. Clic en **"Run"** ▶️
 5. Resultado esperado: ✅ "Success. No rows returned"
 
@@ -88,9 +88,9 @@ Esto crea:
 
 1. Ve a **Authentication** → **Providers** → **Google** → Activar
 2. Te pedirá:
-   - **Client ID** (de Google Cloud)
-   - **Client Secret** (de Google Cloud)
-3. Pega los valores (ver sección de Google Cloud abajo)
+   - **Client ID** (de Google Cloud — ver sección 4)
+   - **Client Secret** (de Google Cloud — ver sección 4)
+3. Pega los valores
 4. Guarda
 
 ### F. Configurar URLs de redirección
@@ -104,7 +104,7 @@ Esto crea:
      - `http://localhost:5173/dashboard`
      - `http://localhost:5173/reset-password`
 
-### G. Conectar SMTP (Resend) para emails bonitos
+### G. Conectar SMTP (Resend) para emails
 
 1. Ve a **Project Settings** (⚙️) → **Authentication** → **SMTP Settings**
 2. Activa **"Enable Custom SMTP"**
@@ -140,20 +140,12 @@ Esto crea:
 
 1. Ve a **"Domains"** → Clic en **"Add Domain"**
 2. Escribe: `raceclubhub.com`
-3. Resend te mostrará registros DNS que debes agregar en Cloudflare:
-
-| Tipo | Nombre (Host) | Valor |
-|------|---------------|-------|
-| TXT | `_dmarc` | `v=DMARC1; p=none;` |
-| CNAME | `resend._domainkey` | (valor que te da Resend) |
-| TXT | `@` | `v=spf1 include:amazonses.com ~all` |
-| MX | `@` | (valor que te da Resend) |
-
-4. Agrega cada registro en Cloudflare DNS (ver sección Cloudflare)
+3. Resend te mostrará registros DNS que debes agregar en Cloudflare
+4. Agrega cada registro en Cloudflare → DNS → Records (ver sección 5.A)
 5. Regresa a Resend y haz clic en **"Verify DNS"**
 6. Espera 1-30 minutos hasta que aparezca ✅
 
-> ⚠️ En Cloudflare, los registros de Resend deben tener la nube en **GRIS (DNS only)**, NO naranja (Proxied).
+> ⚠️ En Cloudflare, los registros DNS de Resend deben tener la nube en **GRIS (DNS only)**, NO naranja (Proxied).
 
 ---
 
@@ -162,8 +154,7 @@ Esto crea:
 ### A. Crear proyecto
 
 1. Ve a [https://console.cloud.google.com](https://console.cloud.google.com)
-2. Crea un nuevo proyecto (o usa uno existente)
-   - Nombre: `EnglishUp`
+2. Crea un nuevo proyecto: `EnglishUp`
 3. Selecciona el proyecto
 
 ### B. Configurar pantalla de consentimiento
@@ -184,23 +175,20 @@ Esto crea:
 3. Configurar:
    - Application type: **Web application**
    - Name: `EnglishUp`
-   - Authorized JavaScript origins:
+   - **Authorized JavaScript origins**:
      - `https://englishup.raceclubhub.com`
      - `http://localhost:5173`
-   - Authorized redirect URIs:
-     - `https://TU_PROYECTO.supabase.co/auth/v1/callback`
-       (reemplaza con tu URL de Supabase)
+   - **Authorized redirect URIs**:
+     - `https://weeorotirsztgbbbsxqg.supabase.co/auth/v1/callback`
 4. Clic en **"Create"**
 5. Copia el **Client ID** y **Client Secret**
 6. Pégalos en Supabase → Authentication → Providers → Google
 
-### D. Publicar la app (importante)
+### D. Publicar la app
 
 1. Ve a **"OAuth consent screen"**
 2. Clic en **"Publish App"** (cambiar de Testing a Production)
-3. Esto permite que cualquier persona use Google Login
-
-> Sin publicar, solo las cuentas de prueba que agregues manualmente podrán iniciar sesión.
+3. Esto permite que CUALQUIER persona use Google Login (no solo cuentas de prueba)
 
 ---
 
@@ -211,16 +199,15 @@ Esto crea:
 1. Ve a [https://dash.cloudflare.com](https://dash.cloudflare.com)
 2. Selecciona tu dominio `raceclubhub.com`
 3. Ve a **"DNS"** → **"Records"**
-4. Agrega los registros que Resend te indicó (ver sección Resend)
-5. **Importante**: Proxy status = **DNS only** (nube gris ☁️) para todos los registros de Resend
+4. Agrega los registros que Resend te indicó
+5. **Importante**: Proxy status = **DNS only** (nube gris ☁️) para TODOS los registros de Resend
 
 ### B. Crear proyecto en Cloudflare Pages
 
 1. Ve a **"Workers & Pages"** (barra lateral)
-2. Clic en **"Create application"** (botón azul)
-3. Selecciona la pestaña **"Pages"** (si aparece)
-   - O busca **"Connect to Git"** / **"Import a Git repository"**
-4. Conecta GitHub → Selecciona `EnglishUp`
+2. Clic en **"Create application"** (botón azul arriba a la derecha)
+3. Busca la opción **"Pages"** o **"Connect to Git"**
+4. Conecta GitHub → Selecciona `Nancyms1012/EnglishUp`
 5. Configurar build:
 
 | Campo | Valor |
@@ -234,8 +221,8 @@ Esto crea:
 
 | Variable | Valor |
 |----------|-------|
-| `VITE_SUPABASE_URL` | `https://xxxxx.supabase.co` |
-| `VITE_SUPABASE_ANON_KEY` | Tu anon key de Supabase |
+| `VITE_SUPABASE_URL` | `https://weeorotirsztgbbbsxqg.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | (tu anon key de Supabase) |
 | `VITE_APP_URL` | `https://englishup.raceclubhub.com` |
 
 7. Clic en **"Save and Deploy"**
@@ -248,7 +235,7 @@ Esto crea:
 3. Escribe: `englishup.raceclubhub.com`
 4. Clic en **"Continue"** → **"Activate domain"**
 5. Cloudflare crea el CNAME automáticamente
-6. Espera ~5 minutos para SSL
+6. Espera ~5 minutos para que el SSL se active
 
 ### D. Verificar
 
@@ -262,25 +249,21 @@ Esto crea:
 ### Archivo `.env` (local, NO se sube a Git)
 
 ```env
-VITE_SUPABASE_URL=https://xxxxx.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiI...
+VITE_SUPABASE_URL=https://weeorotirsztgbbbsxqg.supabase.co
+VITE_SUPABASE_ANON_KEY=tu_anon_key_aqui
 VITE_APP_URL=http://localhost:5173
 ```
 
 ### Cloudflare Pages (producción)
 
-```
-VITE_SUPABASE_URL=https://xxxxx.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiI...
-VITE_APP_URL=https://englishup.raceclubhub.com
-```
+Las mismas variables pero con `VITE_APP_URL=https://englishup.raceclubhub.com`
 
 ---
 
 ## 🔄 Flujo de Deploy Automático
 
 ```
-Tu código → Push a GitHub (main) → Cloudflare detecta → Build automático → Live en tu dominio
+Código → Push a GitHub (main) → Cloudflare detecta → Build automático → Live en englishup.raceclubhub.com
 ```
 
 No necesitas hacer nada manual después del setup inicial.
@@ -291,12 +274,14 @@ No necesitas hacer nada manual después del setup inicial.
 
 | Problema | Solución |
 |----------|----------|
-| Login no funciona | Verificar que las URLs de redirección en Supabase incluyan tu dominio |
-| Emails no llegan | Verificar SMTP en Supabase y que el dominio esté verificado en Resend |
-| Google Login falla | Verificar redirect URI en Google Cloud y que la app esté publicada |
-| Error 404 en rutas | Verificar que el archivo `public/_redirects` existe con `/* /index.html 200` |
-| Build falla en Cloudflare | Verificar variables de entorno en Cloudflare Pages |
-| DNS no verifican | Asegurarse que los registros estén en DNS Only (nube gris) en Cloudflare |
+| Login no funciona | Verificar URLs de redirección en Supabase → Authentication → URL Configuration |
+| Emails no llegan | Verificar SMTP en Supabase (Settings → Auth → SMTP) y dominio verificado en Resend |
+| Google Login: redirect_uri_mismatch | Agregar `https://weeorotirsztgbbbsxqg.supabase.co/auth/v1/callback` en Google Cloud → Credentials → Authorized redirect URIs |
+| Google Login: "app no verificada" | Publicar la app en Google Cloud → OAuth consent screen → Publish App |
+| Error 404 en rutas | Verificar que `public/_redirects` existe con contenido: `/* /index.html 200` |
+| Build falla en Cloudflare | Verificar las 3 variables de entorno en Cloudflare Pages settings |
+| DNS no verifican en Resend | Asegurar que los registros en Cloudflare estén en DNS Only (nube gris, NO naranja) |
+| No se guarda progreso | Verificar que las tablas se crearon correctamente con `supabase/schema.sql` |
 
 ---
 
@@ -306,17 +291,31 @@ No necesitas hacer nada manual después del setup inicial.
 |----------|-----|
 | GitHub Repo | https://github.com/Nancyms1012/EnglishUp |
 | Supabase Dashboard | https://supabase.com/dashboard |
+| Supabase - SQL Editor | https://supabase.com/dashboard/project/weeorotirsztgbbbsxqg/sql |
+| Supabase - Auth Settings | https://supabase.com/dashboard/project/weeorotirsztgbbbsxqg/auth/providers |
 | Resend Dashboard | https://resend.com/domains |
+| Resend - API Keys | https://resend.com/api-keys |
 | Cloudflare Dashboard | https://dash.cloudflare.com |
-| Google Cloud Console | https://console.cloud.google.com/apis/credentials |
+| Google Cloud Credentials | https://console.cloud.google.com/apis/credentials |
 | App en Producción | https://englishup.raceclubhub.com |
 
 ---
 
-## 📝 Notas Importantes
+## 📝 Notas de Seguridad
 
-- **La anon key de Supabase es pública** — es seguro usarla en el frontend
-- **La service_role key NUNCA debe exponerse** — solo para backend/admin
-- **La API Key de Resend** — es secreta, solo va en Supabase SMTP settings
-- **Google Client Secret** — es secreto, solo va en Supabase Google provider settings
-- **El proyecto de Supabase se puede transferir** a otra organización desde Settings → Transfer Project
+| Clave / Secreto | ¿Dónde va? | ¿Es segura en público? |
+|-----------------|------------|------------------------|
+| Supabase anon key | `.env` + Cloudflare vars | ✅ Sí (es pública por diseño) |
+| Supabase service_role key | ❌ NUNCA en el frontend | ❌ NUNCA compartir |
+| Resend API Key | Solo en Supabase SMTP settings | ❌ No compartir |
+| Google Client ID | Supabase Google provider | ✅ Es pública |
+| Google Client Secret | Solo en Supabase Google provider | ❌ No compartir |
+
+---
+
+## 🔄 Transferencia de Proyecto
+
+El proyecto de Supabase se puede transferir a otra organización:
+1. En Supabase → **Settings** (⚙️) → Busca **"Transfer Project"**
+2. Selecciona la organización destino
+3. Requisito: debes ser miembro de ambas organizaciones
