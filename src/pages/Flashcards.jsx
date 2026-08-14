@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { vocabulary } from '../data/vocabulary'
 import { CATEGORIES } from '../lib/constants'
 import { useProgress } from '../context/ProgressContext'
-import { RotateCcw, ArrowLeft, ArrowRight, Volume2, Check, X } from 'lucide-react'
+import { RotateCcw, ArrowLeft, ArrowRight, Volume2, Check, X, Trophy } from 'lucide-react'
 import XPNotification from '../components/XPNotification'
 import LevelUpModal from '../components/LevelUpModal'
 
@@ -14,19 +14,37 @@ export default function Flashcards() {
   const [unknownCards, setUnknownCards] = useState([])
   const [xpNotification, setXpNotification] = useState({ show: false, amount: 0 })
   const [levelUp, setLevelUp] = useState(null)
+  const [sessionComplete, setSessionComplete] = useState(false)
   const { addXP, XP_REWARDS } = useProgress()
+
   const filteredVocab = useMemo(() => {
-    if (!selectedCategory) return vocabulary
+    if (!selectedCategory || selectedCategory === 'all') return vocabulary
     return vocabulary.filter(v => v.category === selectedCategory)
   }, [selectedCategory])
 
   const currentCard = filteredVocab[currentIndex]
+
+  // Check if all cards have been reviewed
+  const totalReviewed = knownCards.length + unknownCards.length
+  const allReviewed = totalReviewed >= filteredVocab.length
 
   const speak = (text, lang = 'en-US') => {
     const utterance = new SpeechSynthesisUtterance(text)
     utterance.lang = lang
     utterance.rate = 0.8
     speechSynthesis.speak(utterance)
+  }
+
+  const findNextUnreviewedIndex = (fromIndex) => {
+    // Find next card that hasn't been reviewed
+    for (let i = 1; i <= filteredVocab.length; i++) {
+      const nextIdx = (fromIndex + i) % filteredVocab.length
+      const card = filteredVocab[nextIdx]
+      if (!knownCards.includes(card.id) && !unknownCards.includes(card.id)) {
+        return nextIdx
+      }
+    }
+    return -1 // All reviewed
   }
 
   const handleNext = () => {
@@ -40,18 +58,57 @@ export default function Flashcards() {
   }
 
   const handleKnown = async () => {
-    setKnownCards([...knownCards, currentCard.id])
+    if (knownCards.includes(currentCard.id)) {
+      // Already marked, just go next
+      handleNext()
+      return
+    }
+
+    const newKnown = [...knownCards, currentCard.id]
+    setKnownCards(newKnown)
+
     const result = await addXP(XP_REWARDS.flashcard_known, 'flashcards')
     setXpNotification({ show: true, amount: XP_REWARDS.flashcard_known })
     if (result?.leveledUp) {
       setLevelUp({ level: result.newLevel.level, name: result.newLevel.name })
     }
-    handleNext()
+
+    // Check if all cards reviewed
+    if (newKnown.length + unknownCards.length >= filteredVocab.length) {
+      setSessionComplete(true)
+    } else {
+      // Move to next unreviewed card
+      setIsFlipped(false)
+      const nextIdx = findNextUnreviewedIndex(currentIndex)
+      if (nextIdx >= 0) {
+        setCurrentIndex(nextIdx)
+      } else {
+        setSessionComplete(true)
+      }
+    }
   }
 
   const handleUnknown = () => {
-    setUnknownCards([...unknownCards, currentCard.id])
-    handleNext()
+    if (unknownCards.includes(currentCard.id)) {
+      handleNext()
+      return
+    }
+
+    const newUnknown = [...unknownCards, currentCard.id]
+    setUnknownCards(newUnknown)
+
+    // Check if all cards reviewed
+    if (knownCards.length + newUnknown.length >= filteredVocab.length) {
+      setSessionComplete(true)
+    } else {
+      setIsFlipped(false)
+      const nextIdx = findNextUnreviewedIndex(currentIndex)
+      if (nextIdx >= 0) {
+        setCurrentIndex(nextIdx)
+      } else {
+        setSessionComplete(true)
+      }
+    }
   }
 
   const resetProgress = () => {
@@ -59,6 +116,7 @@ export default function Flashcards() {
     setUnknownCards([])
     setCurrentIndex(0)
     setIsFlipped(false)
+    setSessionComplete(false)
   }
 
   if (!currentCard) return null
@@ -98,6 +156,53 @@ export default function Flashcards() {
     )
   }
 
+  // Session complete view
+  if (sessionComplete) {
+    const percentage = Math.round((knownCards.length / filteredVocab.length) * 100)
+
+    return (
+      <div className="max-w-2xl mx-auto text-center">
+        <XPNotification amount={xpNotification.amount} show={xpNotification.show} onHide={() => setXpNotification({ show: false, amount: 0 })} />
+        {levelUp && <LevelUpModal level={levelUp.level} levelName={levelUp.name} onClose={() => setLevelUp(null)} />}
+        <div className="card p-8">
+          <div className="text-6xl mb-4">
+            {percentage >= 80 ? '🌟' : percentage >= 50 ? '👍' : '💪'}
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            {percentage >= 80 ? '¡Excelente!' : percentage >= 50 ? '¡Buen trabajo!' : '¡Sigue practicando!'}
+          </h2>
+          <p className="text-gray-500 mb-6">
+            Revisaste todas las tarjetas de esta categoría
+          </p>
+
+          <div className="flex justify-center gap-8 mb-6">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-green-600">{knownCards.length}</div>
+              <div className="text-sm text-gray-500">✅ Las sé</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-red-500">{unknownCards.length}</div>
+              <div className="text-sm text-gray-500">❌ No las sé</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-indigo-600">{percentage}%</div>
+              <div className="text-sm text-gray-500">Dominio</div>
+            </div>
+          </div>
+
+          <div className="flex gap-4 justify-center">
+            <button onClick={resetProgress} className="btn-primary">
+              <RotateCcw size={16} className="inline mr-2" /> Repetir
+            </button>
+            <button onClick={() => { setSelectedCategory(null); resetProgress() }} className="btn-secondary">
+              Otra categoría
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-2xl mx-auto">
       <XPNotification amount={xpNotification.amount} show={xpNotification.show} onHide={() => setXpNotification({ show: false, amount: 0 })} />
@@ -111,7 +216,7 @@ export default function Flashcards() {
           <ArrowLeft size={16} /> Categorías
         </button>
         <div className="text-sm text-gray-500">
-          {currentIndex + 1} / {filteredVocab.length}
+          {totalReviewed} / {filteredVocab.length} revisadas
         </div>
       </div>
 
@@ -134,25 +239,25 @@ export default function Flashcards() {
         className="cursor-pointer perspective-1000"
       >
         <div className={`relative w-full h-72 transition-transform duration-500 transform-style-preserve-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
-          {/* Front - Spanish */}
+          {/* Front - English (what user needs to learn) */}
           <div className="absolute inset-0 card flex flex-col items-center justify-center backface-hidden">
-            <p className="text-sm text-gray-400 mb-4">Español</p>
-            <h2 className="text-3xl font-bold text-gray-800 text-center">{currentCard.es}</h2>
-            <p className="text-sm text-gray-400 mt-6">Toca para ver la traducción</p>
-          </div>
-
-          {/* Back - English */}
-          <div className="absolute inset-0 card flex flex-col items-center justify-center backface-hidden rotate-y-180">
-            <p className="text-sm text-gray-400 mb-2">English</p>
-            <h2 className="text-3xl font-bold text-indigo-600 text-center mb-2">
-              {currentCard.translations.en}
-            </h2>
+            <p className="text-sm text-gray-400 mb-4">English</p>
+            <h2 className="text-3xl font-bold text-indigo-600 text-center">{currentCard.translations.en}</h2>
             <button
               onClick={(e) => { e.stopPropagation(); speak(currentCard.translations.en) }}
-              className="mt-2 p-2 rounded-full bg-indigo-100 hover:bg-indigo-200 transition-colors"
+              className="mt-4 p-2 rounded-full bg-indigo-100 hover:bg-indigo-200 transition-colors"
             >
               <Volume2 size={24} className="text-indigo-600" />
             </button>
+            <p className="text-sm text-gray-400 mt-4">Toca para ver la traducción</p>
+          </div>
+
+          {/* Back - Spanish (translation) */}
+          <div className="absolute inset-0 card flex flex-col items-center justify-center backface-hidden rotate-y-180">
+            <p className="text-sm text-gray-400 mb-2">Español</p>
+            <h2 className="text-3xl font-bold text-gray-800 text-center mb-2">
+              {currentCard.es}
+            </h2>
             {currentCard.example && (
               <div className="mt-4 text-center">
                 <p className="text-sm text-gray-600 italic">"{currentCard.example.en}"</p>
