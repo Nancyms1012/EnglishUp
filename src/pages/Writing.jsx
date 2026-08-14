@@ -229,8 +229,17 @@ export default function Writing() {
             onClick={() => speak(exercise.translations.en)}
             className="flex items-center gap-2 text-indigo-600 hover:underline mx-auto"
           >
-            <Volume2 size={18} /> Escuchar pronunciación
+            <Volume2 size={18} /> Escuchar palabra
           </button>
+
+          {exercise.example && (
+            <button
+              onClick={() => speak(exercise.example.en)}
+              className="flex items-center gap-2 text-gray-500 hover:text-indigo-600 hover:underline mx-auto text-sm"
+            >
+              <Volume2 size={16} /> Escuchar ejemplo: "{exercise.example.en}"
+            </button>
+          )}
 
           <button onClick={handleNext} className="btn-primary w-full">
             {currentIndex + 1 >= exercises.length ? 'Ver resultados' : 'Siguiente →'}

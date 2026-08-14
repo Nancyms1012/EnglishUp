@@ -285,7 +285,7 @@ export default function Quiz() {
         <div className="mt-6 space-y-4">
           {question.explanation && (
             <div className="bg-indigo-50 rounded-xl p-4 flex items-center gap-3">
-              <button onClick={() => speak(question.correctAnswer)} className="p-2 bg-indigo-100 rounded-full">
+              <button onClick={() => speak(question.explanation)} className="p-2 bg-indigo-100 rounded-full">
                 <Volume2 size={18} className="text-indigo-600" />
               </button>
               <div>

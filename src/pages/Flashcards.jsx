@@ -260,7 +260,15 @@ export default function Flashcards() {
             </h2>
             {currentCard.example && (
               <div className="mt-4 text-center">
-                <p className="text-sm text-gray-600 italic">"{currentCard.example.en}"</p>
+                <div className="flex items-center justify-center gap-2">
+                  <p className="text-sm text-gray-600 italic">"{currentCard.example.en}"</p>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); speak(currentCard.example.en) }}
+                    className="p-1.5 rounded-full bg-indigo-100 hover:bg-indigo-200 transition-colors shrink-0"
+                  >
+                    <Volume2 size={14} className="text-indigo-600" />
+                  </button>
+                </div>
                 <p className="text-xs text-gray-400 mt-1">"{currentCard.example.es}"</p>
               </div>
             )}
