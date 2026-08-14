@@ -241,12 +241,41 @@ export function ProgressProvider({ children }) {
     }
   }
 
+  // Reset all progress
+  const resetProgress = async () => {
+    if (!user) return
+
+    const resetProfile = {
+      id: user.id,
+      full_name: profile?.full_name || '',
+      level: 1,
+      total_xp: 0,
+      streak_days: 0,
+      last_active: new Date().toISOString().split('T')[0],
+    }
+
+    await saveProfile(resetProfile)
+
+    // Clear daily activity
+    try {
+      await supabase.from('daily_activity').delete().eq('user_id', user.id)
+      await supabase.from('quiz_results').delete().eq('user_id', user.id)
+      await supabase.from('user_progress').delete().eq('user_id', user.id)
+    } catch (err) {
+      console.error('Error resetting progress:', err)
+    }
+
+    setTodayActivity({ xp_earned: 0, exercises_completed: 0, modules_used: [] })
+    localStorage.removeItem(`englishup_profile_${user.id}`)
+  }
+
   const value = {
     profile,
     loading,
     todayActivity,
     addXP,
     saveQuizResult,
+    resetProgress,
     calculateLevel,
     getNextLevelInfo,
     getAccessibleVocabLevels,

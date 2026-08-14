@@ -141,12 +141,12 @@ export default function Dashboard() {
           <Zap size={18} className="text-green-500" /> ¿Cómo ganar XP?
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-          <div className="flex items-center gap-2"><span className="text-green-500 font-bold">+5</span> Flashcard correcta</div>
           <div className="flex items-center gap-2"><span className="text-green-500 font-bold">+10</span> Quiz correcto</div>
           <div className="flex items-center gap-2"><span className="text-green-500 font-bold">+10</span> Escucha correcta</div>
           <div className="flex items-center gap-2"><span className="text-green-500 font-bold">+10</span> Escritura correcta</div>
           <div className="flex items-center gap-2"><span className="text-green-500 font-bold">+10</span> Pronunciación buena</div>
           <div className="flex items-center gap-2"><span className="text-green-500 font-bold">+10</span> Lectura correcta</div>
+          <div className="flex items-center gap-2"><span className="text-gray-400 text-xs">📚 Flashcards = estudio (sin XP)</span></div>
         </div>
       </div>
 

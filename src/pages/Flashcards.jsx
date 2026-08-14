@@ -1,10 +1,7 @@
 import { useState, useMemo } from 'react'
 import { vocabulary } from '../data/vocabulary'
 import { CATEGORIES } from '../lib/constants'
-import { useProgress } from '../context/ProgressContext'
 import { RotateCcw, ArrowLeft, ArrowRight, Volume2, Check, X, Trophy } from 'lucide-react'
-import XPNotification from '../components/XPNotification'
-import LevelUpModal from '../components/LevelUpModal'
 
 export default function Flashcards() {
   const [selectedCategory, setSelectedCategory] = useState(null)
@@ -12,10 +9,7 @@ export default function Flashcards() {
   const [isFlipped, setIsFlipped] = useState(false)
   const [knownCards, setKnownCards] = useState([])
   const [unknownCards, setUnknownCards] = useState([])
-  const [xpNotification, setXpNotification] = useState({ show: false, amount: 0 })
-  const [levelUp, setLevelUp] = useState(null)
   const [sessionComplete, setSessionComplete] = useState(false)
-  const { addXP, XP_REWARDS } = useProgress()
 
   const filteredVocab = useMemo(() => {
     if (!selectedCategory || selectedCategory === 'all') return vocabulary
@@ -57,21 +51,14 @@ export default function Flashcards() {
     setCurrentIndex((prev) => (prev - 1 + filteredVocab.length) % filteredVocab.length)
   }
 
-  const handleKnown = async () => {
+  const handleKnown = () => {
     if (knownCards.includes(currentCard.id)) {
-      // Already marked, just go next
       handleNext()
       return
     }
 
     const newKnown = [...knownCards, currentCard.id]
     setKnownCards(newKnown)
-
-    const result = await addXP(XP_REWARDS.flashcard_known, 'flashcards')
-    setXpNotification({ show: true, amount: XP_REWARDS.flashcard_known })
-    if (result?.leveledUp) {
-      setLevelUp({ level: result.newLevel.level, name: result.newLevel.name })
-    }
 
     // Check if all cards reviewed
     if (newKnown.length + unknownCards.length >= filteredVocab.length) {
@@ -162,8 +149,6 @@ export default function Flashcards() {
 
     return (
       <div className="max-w-2xl mx-auto text-center">
-        <XPNotification amount={xpNotification.amount} show={xpNotification.show} onHide={() => setXpNotification({ show: false, amount: 0 })} />
-        {levelUp && <LevelUpModal level={levelUp.level} levelName={levelUp.name} onClose={() => setLevelUp(null)} />}
         <div className="card p-8">
           <div className="text-6xl mb-4">
             {percentage >= 80 ? '🌟' : percentage >= 50 ? '👍' : '💪'}
@@ -205,8 +190,6 @@ export default function Flashcards() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <XPNotification amount={xpNotification.amount} show={xpNotification.show} onHide={() => setXpNotification({ show: false, amount: 0 })} />
-      {levelUp && <LevelUpModal level={levelUp.level} levelName={levelUp.name} onClose={() => setLevelUp(null)} />}
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <button
